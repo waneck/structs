@@ -45,6 +45,11 @@ class StructExtensions
 		
 		return null;
 	}
+	
+	static function buildOptimized():Array<Field>
+	{
+		return null;
+	}
 #end
 }
 
