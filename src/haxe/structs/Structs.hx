@@ -7,9 +7,9 @@ import haxe.macro.Expr;
  */
 
 typedef Structs<T> = //where T is AbstractStruct
-	#if (flash9 || cpp) Int
+	#if flash9 Int
 	#elseif js js.webgl.TypedArray.Data
-	#elseif neko haxe.io.BytesData
+	#elseif (neko || cpp) haxe.io.BytesData
 	//php SplFixedArray 
 	//java http://www.javamex.com/tutorials/io/nio_buffers.shtml
 	//neko [custom made code]

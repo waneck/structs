@@ -40,8 +40,6 @@ class StructExtensions
 		//add new() method
 		//override dispose() method to replicate dispose on other structs -> only the ones that contain Structs<> reference
 		//check on each function for unreferenced this calls -> everything must be used as this.
-		//
-		
 		
 		return null;
 	}
@@ -56,15 +54,38 @@ class StructExtensions
 #if macro
 private class StructInfo
 {
-	static inline var ALIGNMENT = #if HXCPP_M64 8 #else 4 #end;
+	/**
+	 * This is the most important data so we can achieve best performance on the cpu and also
+	 * compatibility with native binaries (experimental)
+	 */
+	static inline var ALIGNMENT = #if (HXCPP_M64 || M64 || STRUCTS_M64) 8 #else 4 #end;
+	/**
+	 * The context for all StructInfos
+	 */
 	static var cache:Hash<StructInfo>;
 	
+	/**
+	 * The full struct path
+	 */
 	public var path(default, null):String;
-	
+	/**
+	 * All struct methods; Having them as a Function object will
+	 * allow us to inline those functions on other macros
+	 */
 	private var methods:Hash<Function>;
+	/**
+	 * All variable fields in the struct. They contain the offset of each field, the field position, and a possible default value.
+	 */
 	private var fields:Array<{name:String, type:StructFieldType, isStruct:Bool, byteOffset:Int, defaultValue:Expr, pos:Position }>;
+	/**
+	 * Getter functions - so we can emulate normal haxe behaviour
+	 */
 	private var propertiesGet:Hash<String>;
+	/**
+	 * Setter functions - so we can emulate normal haxe behaviour
+	 */
 	private var propertiesSet:Hash<String>;
+	
 	private var totalBytes:Int;
 	
 	public function new(path:String)
@@ -84,6 +105,11 @@ private class StructInfo
 		totalBytes = 0;
 	}
 	
+	/**
+	 * Gets the struct info from the cache
+	 * @param	t	macro Type for the struct
+	 * @return
+	 */
 	public static function get(t:Type):StructInfo
 	{
 		if (cache == null)
