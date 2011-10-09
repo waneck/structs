@@ -1,0 +1,6 @@
+package structs;
+
+class BasicStructTests
+{
+	
+}

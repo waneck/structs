@@ -6,6 +6,7 @@ import haxe.structs.AbstractStruct;
  * @author waneck
  */
 
+//@:structLayout(Compact)
 class Matrix extends AbstractStruct
 {
 	public var test:Int;

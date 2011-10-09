@@ -1,17 +1,28 @@
 package haxe.structs;
+import haxe.structs.options.StructLayout;
+import haxe.macro.MacroTools;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 
 class StructExtensions
 {
+	@:macro public static function make(cls:ExprRequire<Class<Dynamic>>, args:Array<Expr>):Expr
+	{
+		return null;
+	}
+	
 #if macro
 	static function build():Array<Field>
 	{
+#if display
+		return null;
+#else
 		var fields = Context.getBuildFields();
 		
 		//check if struct extends another struct type
 		var context:ClassType = Context.getLocalClass().get();
+		var pos = Context.currentPos();
 		
 		var sc = context.superClass;
 		var i = 0;
@@ -24,24 +35,119 @@ class StructExtensions
 		if ( i > 1 )
 			Context.error("A Struct cannot derive from another type other than AbstractStruct", Context.currentPos());
 		
+		var path = Context.getLocalClass().toString();
+		var structLayout:StructLayout = Sequential;
+		for (meta in context.meta.get())
+		{
+			switch(meta.name)
+			{
+				case "structLayout", ":structLayout":
+					structLayout = switch(MacroTools.getString(meta.params[0], true))
+					{
+						case "Sequential": Sequential;
+						case "Compact": Compact;
+						case "Explicit": Explicit;
+						default: Context.error("Invalid Struct Layout type", meta.pos);
+					}
+				default:
+			}
+		}
+		
 		//set it as final
 		context.meta.add(":final", [], Context.currentPos());
 		
-		var path = Context.getLocalClass().toString();
+		var structInfo = new StructInfo(path, structLayout);
 		
-		var structInfo = new StructInfo(path);
+		var newArgs = [];
+		var newExpr = [];
+		var disposeExpr = [];
+		
+		var newFields = [];
 		
 		for (field in fields)
 		{
-			structInfo.addField(field);
+			var f = structInfo.addField(field);
+			if (f != null)
+			{
+				newArgs.push({
+					name:field.name,
+					opt:true,
+					type:null,
+					value:null
+				});
+				
+				newExpr.push({
+					expr:EBinop(OpAssign, {
+						expr:EField({
+							expr:EConst(CIdent("this")),
+							pos:field.pos
+						}, field.name),
+						pos:field.pos
+					}, {
+						expr:EConst(CIdent(field.name)),
+						pos:field.pos
+					}),
+					pos:field.pos
+				});
+				
+				switch(f.type)
+				{
+					case SFStruct(s):
+						disposeExpr.push({
+							expr:ECall(MacroTools.path([field.name, "dispose"], field.pos), []),
+							pos:field.pos
+						});
+					default:
+				}
+			}
+			
+			newFields.push(field);
 		}
+		
+		structInfo.close();
+		
+		newFields.push({
+			name:"new",
+			doc:null,
+			access:[APublic],
+			kind:FFun({
+				args:newArgs,
+				ret:null,
+				expr:{
+					expr:EBlock(newExpr),
+					pos:pos
+				},
+				params:[]
+			}),
+			pos:pos,
+			meta:[]
+		});
+		
+		if (disposeExpr.length > 0)
+			newFields.push({
+				name:"dispose",
+				doc:null,
+				access:[APublic, AOverride],
+				kind:FFun({
+					args:[],
+					ret:null,
+					expr:{
+						expr:EBlock(disposeExpr),
+						pos:pos
+					},
+					params:[]
+				}),
+				pos:pos,
+				meta:[]
+			});
 		
 		//TODOs:
 		//add new() method
 		//override dispose() method to replicate dispose on other structs -> only the ones that contain Structs<> reference
 		//check on each function for unreferenced this calls -> everything must be used as this.
 		
-		return null;
+		return newFields;
+#end
 	}
 	
 	static function buildOptimized():Array<Field>
@@ -52,13 +158,13 @@ class StructExtensions
 }
 
 #if macro
-private class StructInfo
+class StructInfo
 {
 	/**
 	 * This is the most important data so we can achieve best performance on the cpu and also
 	 * compatibility with native binaries (experimental)
 	 */
-	static inline var ALIGNMENT = #if (HXCPP_M64 || M64 || STRUCTS_M64) 8 #else 4 #end;
+	static #if (!(cpp && STRUCTS_DYNAMIC_ALIGNMENT)) inline #end var ALIGNMENT = #if (HXCPP_M64 || M64 || STRUCTS_M64) 8 #else 4 #end;
 	/**
 	 * The context for all StructInfos
 	 */
@@ -86,9 +192,13 @@ private class StructInfo
 	 */
 	private var propertiesSet:Hash<String>;
 	
-	private var totalBytes:Int;
+	private var closed:Bool;
 	
-	public function new(path:String)
+	private var layout:StructLayout;
+	
+	public var totalBytes(default, null):Int;
+	
+	public function new(path:String, structLayout:StructLayout)
 	{
 		if (cache == null)
 			cache = new Hash();
@@ -103,6 +213,7 @@ private class StructInfo
 		propertiesSet = new Hash();
 		fields = [];
 		totalBytes = 0;
+		layout = structLayout;
 	}
 	
 	/**
@@ -146,8 +257,89 @@ private class StructInfo
 		}
 	}
 	
-	public function addField(field:Field):Void 
+	public function getField(name:String):Null<{name:String, type:StructFieldType, isStruct:Bool, byteOffset:Int, defaultValue:Expr, pos:Position }>
 	{
+		if (!closed)
+			throw "getField only works when struct is already closed";
+		
+		for (field in fields)
+		{
+			if (field.name == name)
+				return field;
+		}
+		
+		return null;
+	}
+	
+	public function iterator()
+	{
+		return fields.iterator();
+	}
+	
+	public function close():Void
+	{
+		var shouldRunAlignment = true;
+		switch(layout)
+		{
+			case Sequential:
+				shouldRunAlignment = true;
+			case Compact:
+				var fs = [];
+				for (field in fields)
+				{
+					fs.push({bytes:getFieldTypeBytes(field.type), field:field});
+				}
+				
+				fs.sort(function(a,b) return a.bytes - b.bytes);
+				
+				for (i in 0...fs.length)
+					fields[i] = fs[i].field;
+				
+				shouldRunAlignment = true;
+			case Explicit:
+				for (field in fields)
+				{
+					var tb = field.byteOffset + getFieldTypeBytes(field.type);
+					if (this.totalBytes < tb)
+						this.totalBytes = tb;
+				}
+				
+				shouldRunAlignment = false;
+		}
+		
+		if (shouldRunAlignment) applyAlignment();
+		
+		closed = true;
+		var currentByteAlignment = this.totalBytes % ALIGNMENT;
+		if (currentByteAlignment != 0)
+			this.totalBytes += ALIGNMENT - currentByteAlignment;
+	}
+	
+	private function applyAlignment():Void
+	{
+		//alignment rules taken from
+		//http://en.wikipedia.org/wiki/Data_structure_alignment
+		//and http://msdn.microsoft.com/en-us/library/ms253949(v=vs.80).aspx
+		
+		for (field in fields)
+		{
+			var fieldBytes = getFieldTypeBytes(field.type);
+			var currentByteAlignment = this.totalBytes % fieldBytes;
+			if (currentByteAlignment != 0)
+			{
+				this.totalBytes += (fieldBytes - currentByteAlignment);
+			}
+			
+			field.byteOffset = this.totalBytes;
+			this.totalBytes += fieldBytes;
+		}
+	}
+	
+	public function addField(field:Field):{name:String, type:StructFieldType, isStruct:Bool, byteOffset:Int, defaultValue:Expr, pos:Position } 
+	{
+		if (closed)
+			throw "Cannot add field to closed struct";
+		
 		var ignore = false;
 		for (meta in field.meta)
 		{
@@ -159,47 +351,70 @@ private class StructInfo
 			}
 		}
 		
-		trace(field.name);
-		switch(field.kind)
+		var fieldOffset = -1;
+		var isExplicit = false;
+		switch(layout)
 		{
-			case FVar(type, e):
-				if (ignore) return;
-				var fieldType = getStructFieldType(getType(type, field.pos));
-				var isStruct = switch(fieldType) { case SFStruct(_): true; default: false; };
-				//Array<{name:String, type:StructFieldType, isStruct:Bool, byteOffset:Int, defaultValue:Expr }>;
-				var currentByteAlignment = this.totalBytes % ALIGNMENT;
-				var fieldBytes = getFieldTypeBytes(fieldType);
-				if (currentByteAlignment != 0)
+			case Explicit:
+				isExplicit = true;
+				
+				for (meta in field.meta)
 				{
-					if (currentByteAlignment + fieldBytes > ALIGNMENT)
+					switch(meta.name)
 					{
-						this.totalBytes += (ALIGNMENT - currentByteAlignment);
+						case "fieldOffset", ":fieldOffset":
+							fieldOffset = MacroTools.getInt(meta.params[0]);
 					}
 				}
+			default:
+		}
+		
+		return switch(field.kind)
+		{
+			case FVar(type, e):
+				if (ignore) return null;
+				var fieldType = getStructFieldType(getType(type, field.pos));
+				var isStruct = switch(fieldType) { case SFStruct(_): true; default: false; };
 				
-				var currentByteOffset = this.totalBytes;
-				this.totalBytes += fieldBytes;
+				//Array<{name:String, type:StructFieldType, isStruct:Bool, byteOffset:Int, defaultValue:Expr }>;
+				if (isExplicit)
+				{
+					if (fieldOffset < 0) Context.error("Please specify the field offset (Explicit layout)", field.pos);
+					var fieldBytes = getFieldTypeBytes(fieldType);
+					if (fieldOffset % fieldBytes != 0) Context.error("Unaligned explicit layout", field.pos);
+				}
 				
-				this.fields.push( { name:field.name, type:fieldType, isStruct:isStruct, byteOffset: currentByteOffset, defaultValue: e, pos:field.pos } );
+				var f = { name:field.name, type:fieldType, isStruct:isStruct, byteOffset: fieldOffset, defaultValue: e, pos:field.pos };
+				this.fields.push( f );
 				
+				f;
 			case FFun(f):
 				if (field.name == "new")
 					Context.error("Structs can't have constructors; They will be automatically generated", field.pos);
 				
-				if (ignore) return;
+				if (ignore) return null;
 				this.methods.set(field.name, f);
-			
-			case FProp(get, set, type):
+				
+				null;
+			case FProp(get, set, type, e):
+				var f = null;
 				if (!ignore)
 				{
-					field.kind = FVar(type, null);
-					addField(field);
+					f = addField({
+						name:field.name,
+						access:field.access,
+						doc:field.doc,
+						kind:FVar(type, e),
+						pos:field.pos,
+						meta:field.meta
+					});
 				}
 				
 				if (get != "default" && get != "null" && get != "never")
 					propertiesGet.set(field.name, get);
 				if (set != "default" && set != "null" && set != "never")
 					propertiesSet.set(field.name, set);
+				f;
 		}
 	}
 	
@@ -208,7 +423,7 @@ private class StructInfo
 		return switch(sf)
 		{
 			case SFInt64, SFDouble: 8;
-			case SFInt, SFSingle: 4;
+			case SFInt, SFInt32, SFSingle: 4;
 			case SFShort: 2;
 			case SFByte: 1;
 			case SFStruct(s): s.totalBytes;
@@ -220,20 +435,21 @@ private class StructInfo
 		var isTypedef = false;
 		var path = switch(t)
 		{
-			case TType(t, _):t.toString();
+			case TType(t, _):isTypedef = true; t.toString();
 			case TInst(t, _):t.toString();
-			case TEnum(t, _):isTypedef = true;  t.toString();
+			case TEnum(t, _):t.toString();
 			default: throw "assert";
 		};
 		
 		return switch(path)
 		{
 			case "Int": SFInt;
-			case "haxe.structs.Short": SFShort;
+			case "haxe.structs.options.Short": SFShort;
 			case "haxe.Int64": SFInt64;
-			case "haxe.structs.Byte": SFByte;
-			case "Float", "haxe.structs.Double": SFDouble;
-			case "haxe.structs.Single": SFSingle;
+			case "haxe.Int32": SFInt32;
+			case "haxe.structs.options.Byte": SFByte;
+			case "Float", "haxe.structs.options.Double": SFDouble;
+			case "haxe.structs.options.Single": SFSingle;
 			default: if (isTypedef)
 				getStructFieldType(Context.follow(t, true));
 			else
@@ -265,6 +481,7 @@ private class StructInfo
 enum StructFieldType
 {
 	SFInt64;
+	SFInt32;
 	SFInt;
 	SFShort;
 	SFByte;
