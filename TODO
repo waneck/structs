@@ -1,8 +1,7 @@
 V Finish correct #if display conditional implementation
 V Structs<> dispose() function -> needed only for flash9
-- Structs<> iterator function
-- Best way for pure one type Structs<> implementation
-- Implement function calls
+V Structs<> iterator function
+V Best way for pure one type Structs<> implementation (Structs<Float>)
 - Implement cpp functions
 	- start of NativeGateway
 - Test suite
@@ -18,6 +17,7 @@ V Structs<> dispose() function -> needed only for flash9
 
 ---- milestone 2 -----
 
+- Implement function calls
 - Optimization
 - OptimizedStructUsage
 

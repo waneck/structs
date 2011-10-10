@@ -1,4 +1,5 @@
 package ;
+import haxe.structs.options.Types;
 import haxe.structs.Structs;
 using haxe.structs.Structs;
 
@@ -28,13 +29,30 @@ class Main
 		//m.test;
 		trace(a.get(10));
 		
-		a.set(9, new Matrix(1,2,3,4));
+		a.set(9, this = new Matrix(10,20,30,40));
 		trace(a.get(9));
 		trace(a.get(10, this.test));
 		
 		trace(a.set(10, test = 1));
 		trace(a.set(10, this.test2 = 4));
 		trace(a.get(10, this.test2));
+		
+		
+		var f = Single.structs(10);
+		
+		f.set(0, this = 0.1);
+		f.set(1, 0.2);
+		f.set(2, 0.3);
+		f.foreach(val, trace(val));
+		
+		trace(f.get(0));
+		trace(f.get(1));
+		trace(f.get(2));
+		
+		a.foreach(myVar, 
+		{
+			trace(myVar);
+		});
 		
 		trace(a.get(5, this.test3));
 		//a.get(5, this.)

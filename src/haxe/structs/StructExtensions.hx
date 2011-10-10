@@ -173,6 +173,10 @@ class StructInfo
 	 */
 	public var path(default, null):String;
 	/**
+	 *  Native types are the common Int, Float, Byte, etc...
+	 **/
+	public var isNativeType(default, null):Bool;
+	/**
 	 * All struct methods; Having them as a Function object will
 	 * allow us to inline those functions on other macros
 	 */
@@ -209,6 +213,7 @@ class StructInfo
 		methods = new Hash();
 		propertiesGet = new Hash();
 		propertiesSet = new Hash();
+		isNativeType = false;
 		fields = [];
 		totalBytes = 0;
 		layout = structLayout;
@@ -224,9 +229,10 @@ class StructInfo
 		if (cache == null)
 			cache = new Hash();
 		
+		var isTypedef = false;
 		var path = switch(t)
 		{
-			case TType(t, _):t.toString();
+			case TType(t, _):isTypedef = false; t.toString();
 			case TInst(t, _):t.toString();
 			case TEnum(t, _):t.toString();
 			default: throw "assert";
@@ -236,8 +242,49 @@ class StructInfo
 		{
 			cache.get(path);
 		} else {
+			var info = testBasicType(t);
+			if (info != null) return info;
+			if (isTypedef) return get(Context.follow(t, true));
+			
 			throw "Type " + path + " is not a Struct";
 		}
+	}
+	
+	private static function testBasicType(t:Type):Null<StructInfo>
+	{
+		var isTypedef = false;
+		var path = switch(t)
+		{
+			case TType(t, _):isTypedef = true; t.toString();
+			case TInst(t, _):t.toString();
+			case TEnum(t, _):t.toString();
+			default: throw "assert";
+		};
+		
+		var stype = switch(path)
+		{
+			case "Int": SFInt;
+			case "haxe.structs.options.Short": SFShort;
+			case "haxe.Int64": SFInt64;
+			case "haxe.Int32": SFInt32;
+			case "haxe.structs.options.Byte": SFByte;
+			case "Float", "haxe.structs.options.Double": SFDouble;
+			case "haxe.structs.options.Single": SFSingle;
+			default: null;
+		}
+		
+		if (stype == null)
+		{
+			return if (isTypedef) testBasicType(Context.follow(t, true)); else null;
+		}
+		
+		var info = new StructInfo(path, Sequential);
+		info.isNativeType = true;
+		info.fields.push({name:"this", type:stype, isStruct:false, byteOffset:0, defaultValue:null, pos:Context.makePosition({min:0, max:0, file:""}) });
+		info.totalBytes = getFieldTypeBytes(stype);
+		info.close();
+		
+		return info;
 	}
 	
 	static function getType(type:ComplexType, pos:Position):Type

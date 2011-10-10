@@ -25,7 +25,7 @@ class Manager
 	
 	public static function getBytesLength(addr:MemoryAddress):Int
 	{
-		return 0;
+		return 160;
 	}
 	
 	

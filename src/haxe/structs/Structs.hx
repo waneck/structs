@@ -86,14 +86,15 @@ class StructsExtensions
 		{
 			case TType(tref, params):
 				params[0];
-			default: null;
+			default: return {expr:EConst(CIdent("null")), pos:pos};
 		};
+		
 		var structType = switch(structType)
 		{
 			case TType(tref, _): tref.toString();
 			case TEnum(tref, _): tref.toString();
 			case TInst(tref, _): tref.toString();
-			default: null;
+			default: return {expr:EConst(CIdent("null")), pos:pos};
 		}; 
 		var pack:Array<String> = structType.split(".");
 		var name = pack.pop();
@@ -131,6 +132,94 @@ class StructsExtensions
 	}
 
 #end
+	
+	@:macro public static function foreach(me:ExprRequire<Structs<Dynamic>>, createdVar:Expr, block:Expr):Expr
+	{
+		var type = Context.typeof(me);
+		var pos = Context.currentPos();
+		var struct = StructInfo.get(getStructType(type, me.pos));
+		
+		var createdVar = switch(createdVar.expr)
+		{
+			case EConst(c):
+				switch(c)
+				{
+					case CIdent(s), CType(s): s;
+					default: null;
+				}
+			default:null;
+		}
+		
+		var blockArray = switch(block.expr)
+		{
+			case EBlock(bl): bl;
+			default:
+				var ret = [block];
+				block = {expr:EBlock(ret), pos:block.pos};
+				ret;
+		};
+		
+		var newBlock = [];
+		
+		if (createdVar == null) Context.error("Foreach expression must be 'structs.foreach(myVar, {...})'", pos);
+		var it = createdVar + "__i__";
+		var len = createdVar + "__len__";
+		
+		newBlock.push({
+			expr:EVars([
+			{
+				name:it,
+				type:null,
+				expr:{expr:EConst(CInt((-struct.totalBytes) + "")), pos:pos}
+			}, 
+			{
+				name:len,
+				type:null,
+				expr:MacroTools.mkCall(["haxe", "structs", "internal", "StructsInternal", "internalSize"], [me], pos)
+			}]),
+			pos:pos
+		});
+		
+		newBlock.push({
+			expr:EWhile({ //while
+				expr:EBinop(OpLt, { //<
+					expr:EBinop(OpAssignOp(OpAdd), {expr:EConst(CIdent(it)), pos:pos}, {expr:EConst(CInt(struct.totalBytes + "")), pos:pos}),
+					pos:pos
+				}, {expr:EConst(CIdent(len)), pos:pos} ),
+				pos:pos
+			}, block, true),
+			pos:pos
+		});
+		
+		var newArgs = [];
+		var offset = {expr:EConst(CIdent(it)), pos:pos};
+		for (field in struct)
+		{
+			newArgs.push(getFieldExpr(me, offset, field, pos));
+		}
+		
+		var pack = struct.path.split(".");
+		var name = pack.pop();
+		var enew = if (!struct.isNativeType)
+			{
+				expr:ENew({ pack:pack, name:name, params:[], sub:null }, newArgs),
+				pos:pos
+			};
+		else
+			newArgs[0];
+		
+		blockArray.unshift({
+			expr:EVars([{
+				name:createdVar,
+				type:null,
+				expr:enew
+			}]),
+			pos:pos
+		});
+		
+		return {expr:EBlock(newBlock), pos:pos};
+	}
+	
 	
 	@:macro public static function set(fieldsOrNewStruct:Array<Expr>):Expr
 	{
@@ -176,15 +265,15 @@ class StructsExtensions
 	
 	@:macro public static function structs(cl:ExprRequire<Class<Dynamic>>, size:Int):Expr
 	{
-#if display
-		var pos = Context.currentPos();
-		return MacroTools.mkCall(["haxe", "structs", "internal", "StructsInternal", "internalMake"], [{expr:EConst(CInt(size + "")), pos:pos}], pos);
-#else
 		var clpath = MacroTools.getPath(cl);
 		var type = Context.typeof( Context.parse("{ var _:" + clpath.join(".") + "; _;}", cl.pos) );
 		var pos = Context.currentPos();
 		//get the underlying struct type (Structs<MyType>, get MyType)
+#if display
+		var struct = {totalBytes:0};
+#else
 		var struct = StructInfo.get(type);
+#end
 		var call = MacroTools.mkCall(["haxe", "structs", "internal", "StructsInternal", "internalMake"], [{expr:EConst(CInt((size * struct.totalBytes) + "")), pos:pos}], pos);
 		var block = [];
 		var clname = clpath.pop();
@@ -212,7 +301,6 @@ class StructsExtensions
 		
 		block.push({expr:EConst(CIdent("_")), pos:pos});
 		return {expr:EBlock(block), pos:pos};
-#end
 	}
 	
 	public static function dispose(s:Structs<Dynamic>):Void 
@@ -286,7 +374,11 @@ class StructsExtensions
 			var fieldOffset = 0;
 			var lastF = null;
 			if (assign.leftSide[0] == "this")
+			{
+				lastF = {name:"this", type:SFStruct(struct), byteOffset:0};
 				assign.leftSide.shift();
+			}
+				
 			for (field in assign.leftSide)
 			{
 				if (lastF != null)
@@ -300,7 +392,7 @@ class StructsExtensions
 					}
 					fieldOffset += lastF.byteOffset;
 				}
-
+				
 				lastF = struct.getField(field);
 				if (lastF == null)
 				{
@@ -355,7 +447,7 @@ class StructsExtensions
 			case SFShort: "setInt16";
 			case SFByte: "setInt8";
 			case SFDouble: "setDouble";
-			case SFSingle: "setFloat";
+			case SFSingle: "setSingle";
 			case SFInt32: "setInt32h";
 			case SFInt64: "setInt64";
 			default: throw "assert";
@@ -366,6 +458,16 @@ class StructsExtensions
 	
 	private static function setFieldExpr(me:Expr, bytesOffset:Expr, field:{type:StructFieldType, byteOffset:Int}, setExpr:Expr, assignOp:Null<Binop>, pos:Position):Expr
 	{
+		var field = switch(field.type)
+		{
+			case SFStruct(info):
+				if (info.isNativeType)
+					info.getField("this");
+				else
+					field;
+			default:field;
+		};
+		
 		return switch(field.type)
 		{
 			case SFInt, SFShort, SFByte, SFDouble, SFSingle, SFInt32, SFInt64:
@@ -548,7 +650,7 @@ class StructsExtensions
 					case SFShort: "getInt16";
 					case SFByte: "getInt8";
 					case SFDouble: "getDouble";
-					case SFSingle: "getFloat";
+					case SFSingle: "getSingle";
 					default: null;
 				};
 				
@@ -559,6 +661,16 @@ class StructsExtensions
 	
 	private static function getFieldExpr(me:Expr, bytesOffset:Expr, field:{type:StructFieldType, byteOffset:Int}, pos:Position):Expr
 	{
+		var field = switch(field.type)
+		{
+			case SFStruct(info):
+				if (info.isNativeType)
+					info.getField("this");
+				else
+					field;
+			default: field;
+		};
+		
 		return switch(field.type)
 		{
 			case SFInt, SFShort, SFByte, SFDouble, SFSingle, SFInt32, SFInt64:

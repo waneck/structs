@@ -56,7 +56,7 @@ class StructsInternal
 #elseif cpp
 		return untyped __global__.__hxcpp_bytearray_get_float32(me, bytesOffset);
 #elseif neko
-		return _float_of_bytes(untyped __dollar__ssub(b,addr,4),false);
+		return _float_of_bytes(untyped __dollar__ssub(me,bytesOffset,4),false);
 #elseif js
 		return me.getFloat32(bytesOffset);
 #else
@@ -71,7 +71,7 @@ class StructsInternal
 #elseif cpp
 		return untyped __global__.__hxcpp_bytearray_get_float64(me, bytesOffset);
 #elseif neko
-		return _double_of_bytes(untyped __dollar__ssub(b,addr,4),false);
+		return _double_of_bytes(untyped __dollar__ssub(me,bytesOffset,8),false);
 #elseif js
 		return me.getFloat64(bytesOffset);
 #else
@@ -238,8 +238,7 @@ class StructsInternal
 #end
 	}
 	
-	//warning: means different things on different platforms. do not use directly
-	public static inline function internalLength(s:Structs<Dynamic>):Int
+	public static inline function internalSize(s:Structs<Dynamic>):Int
 	{
 #if flash9
 		return haxe.structs.management.Manager.getBytesLength(s);
