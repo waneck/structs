@@ -1,5 +1,5 @@
-- Finish correct #if display conditional implementation
-- Structs<> dispose() function -> needed only for flash9
+V Finish correct #if display conditional implementation
+V Structs<> dispose() function -> needed only for flash9
 - Structs<> iterator function
 - Best way for pure one type Structs<> implementation
 - Implement function calls
@@ -10,6 +10,8 @@
 	
 ---- milestone 1 -----
 
+- support for nested Structs<> structures
+	- dispose() implementantion will collapse all Structs<> calls
 - flash9 manager - simplified dlmalloc
 - package reengineering for cleaner code
 - documentation

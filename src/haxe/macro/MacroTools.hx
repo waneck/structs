@@ -38,6 +38,15 @@ class MacroTools
 		}
 	}
 	
+	public static function isDisplay(e:Expr):Bool
+	{
+		return switch(e.expr)
+		{
+			case EDisplay(_,_), EDisplayNew(_): true;
+			default: false;
+		}
+	}
+	
 	public static function getPath(e:Expr, ?a:Array<String>):Array<String>
 	{
 		if (null == a)

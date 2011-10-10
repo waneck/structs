@@ -112,14 +112,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>31</integer>
+				<integer>8</integer>
 				<key>line</key>
-				<integer>102</integer>
+				<integer>158</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>89</integer>
+			<integer>151</integer>
 		</dict>
 		<key>src/haxe/structs/Tools.hx</key>
 		<dict>
@@ -194,6 +194,6 @@
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{0, 4}, {903, 774}}</string>
+	<string>{{1280, 256}, {983, 768}}</string>
 </dict>
 </plist>

@@ -30,11 +30,17 @@ class Main
 		
 		a.set(9, new Matrix(1,2,3,4));
 		trace(a.get(9));
+		trace(a.get(10, this.test));
 		
-		a.get(5, this.test);
+		trace(a.set(10, test = 1));
+		trace(a.set(10, this.test2 = 4));
+		trace(a.get(10, this.test2));
 		
-		a.set(11, this.test = 1, test2 = 2, test3 = 3, test4 = 4);
-		trace(a.get(11));
+		trace(a.get(5, this.test3));
+		//a.get(5, this.)
+		
+		//a.set(11, this.test = 1, test2 = 2, test3 = 3, test4 = 4);
+		//trace(a.get(11));
 		
 	}
 	

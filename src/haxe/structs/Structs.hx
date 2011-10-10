@@ -43,100 +43,148 @@ class StructsExtensions
 		}
 		
 #if display
+		if (MacroTools.isDisplay(me))
+			return me;
+		else if (MacroTools.isDisplay(index))
+			return index;
+		else
+			return getFieldCompletion(me, fieldExpr);
+#end
+		return _get(me, index, fieldExpr);
+	}
+
+#if (display && macro)
+	private static function getFieldCompletion(me:Expr, fieldExpr:Expr):Expr
+	{
+		var isDisplay = false;
+		
 		if (fieldExpr != null)
 		{
 			switch(fieldExpr.expr)
 			{
 				case EDisplay(e, isCall):
 					if (isCall) Context.error("Structs.get() cannot contain method calls", fieldExpr.pos);
-					var path = MacroTools.getPath(e);
-					if (path[0] == "this")
-						path.shift();
-					
-					var type = Context.typeof(me);
-					var pos = Context.currentPos();
-
-					//get the underlying struct type (Structs<MyType>, get MyType)
-
-					var structType = switch(type)
-					{
-						case TType(tref, params):
-							params[0];
-						default: null;
-					};
-					var structType = switch(structType)
-					{
-						case TType(tref, _): tref.toString();
-						case TEnum(tref, _): tref.toString();
-						case TInst(tref, _): tref.toString();
-						default: null;
-					}; 
-					var pack:Array<String> = structType.split(".");
-					var name = pack.pop();
-					
-					var block = [];
-					block.push({
-						expr: EVars([{
-							name:"_",
-							type:TPath({
-								pack:pack,
-								name:name,
-								params:[],
-								sub:null
-							}), 
-							expr:null 
-						}]),
-						pos:pos
-					});
-					
-					block.push({expr:EConst(CIdent("_")), pos:pos});
-					
-					var curExpr = {expr:EBlock(block), pos:pos};
-					for (p in path)
-					{
-						if (MacroTools.isUpperFirst(p))
-							curExpr = {expr:EType(curExpr, p), pos:pos};
-						else
-							curExpr = {expr:EField(curExpr, p), pos:pos};
-					}
-					
-					return {expr:EDisplay(curExpr, false), pos:pos};
+					isDisplay = true;
+					fieldExpr = e;
 				default:
 			}
 		}
-		return {expr:EConst(CIdent("null")), pos:Context.currentPos()};
-#end
-		return _get(me, index, fieldExpr);
+		
+		var path = [];
+		if (fieldExpr != null)
+			path = MacroTools.getPath(fieldExpr);
+		
+		if (path[0] == "this")
+			path.shift();
+		
+		var type = Context.typeof(me);
+		var pos = Context.currentPos();
+
+		//get the underlying struct type (Structs<MyType>, get MyType)
+
+		var structType = switch(type)
+		{
+			case TType(tref, params):
+				params[0];
+			default: null;
+		};
+		var structType = switch(structType)
+		{
+			case TType(tref, _): tref.toString();
+			case TEnum(tref, _): tref.toString();
+			case TInst(tref, _): tref.toString();
+			default: null;
+		}; 
+		var pack:Array<String> = structType.split(".");
+		var name = pack.pop();
+		
+		var block = [];
+		block.push({
+			expr: EVars([{
+				name:"_",
+				type:TPath({
+					pack:pack,
+					name:name,
+					params:[],
+					sub:null
+				}), 
+				expr:{expr:EConst(CIdent("null")), pos:pos} 
+			}]),
+			pos:pos
+		});
+		
+		block.push({expr:EConst(CIdent("_")), pos:pos});
+		
+		var curExpr = {expr:EBlock(block), pos:pos};
+		for (p in path)
+		{
+			if (MacroTools.isUpperFirst(p))
+				curExpr = {expr:EType(curExpr, p), pos:pos};
+			else
+				curExpr = {expr:EField(curExpr, p), pos:pos};
+		}
+		
+		return if (isDisplay)
+			{expr:EDisplay(curExpr, false), pos:pos};
+		else
+			curExpr;
 	}
+
+#end
 	
 	@:macro public static function set(fieldsOrNewStruct:Array<Expr>):Expr
 	{
+#if display
+		//first check to see if there is EDisplay here
+		//if not, ignore
+		
+		var i = 0;
+		for (e in fieldsOrNewStruct)
+		{
+			if (MacroTools.isDisplay(e))
+			{
+				if (i < 2)
+					return e;
+				else
+					return getFieldCompletion(fieldsOrNewStruct[0], e);
+			}
+			
+			switch(e.expr)
+			{
+				case EBinop(op, e1, e2):
+					if (MacroTools.isDisplay(e1))
+						return getFieldCompletion(fieldsOrNewStruct[0], e1);
+					else if (MacroTools.isDisplay(e2))
+						return e2;
+				default:
+			}
+			
+			i++;
+		}
+		
+		return {expr:EConst(CIdent("null")), pos:Context.currentPos()};
+#else
 		if (fieldsOrNewStruct.length < 3)
 			Context.error("Incorrect number of call arguments", Context.currentPos());
 		
 		var me = fieldsOrNewStruct.shift();
 		var index = fieldsOrNewStruct.shift();
-#if display
-		//first check to see if there is EDisplay here
-		//if not, ignore
 		
-		return {expr:EConst(CIdent("null")), pos:Context.currentPos()};
-#else
 		return _set(me, index, fieldsOrNewStruct);
 #end
 	}
 	
 	@:macro public static function structs(cl:ExprRequire<Class<Dynamic>>, size:Int):Expr
 	{
+#if display
+		var pos = Context.currentPos();
+		return MacroTools.mkCall(["haxe", "structs", "internal", "StructsInternal", "internalMake"], [{expr:EConst(CInt(size + "")), pos:pos}], pos);
+#else
 		var clpath = MacroTools.getPath(cl);
 		var type = Context.typeof( Context.parse("{ var _:" + clpath.join(".") + "; _;}", cl.pos) );
 		var pos = Context.currentPos();
-#if display
-		var struct = {totalBytes:0};
-#else
 		//get the underlying struct type (Structs<MyType>, get MyType)
 		var struct = StructInfo.get(type);
-#end
 		var call = MacroTools.mkCall(["haxe", "structs", "internal", "StructsInternal", "internalMake"], [{expr:EConst(CInt((size * struct.totalBytes) + "")), pos:pos}], pos);
 		var block = [];
 		var clname = clpath.pop();
@@ -164,8 +212,17 @@ class StructsExtensions
 		
 		block.push({expr:EConst(CIdent("_")), pos:pos});
 		return {expr:EBlock(block), pos:pos};
+#end
 	}
 	
+	public static function dispose(s:Structs<Dynamic>):Void 
+	{
+#if flash9
+		haxe.management.Manager.free(s);
+#else
+		
+#end
+	}
 	
 #if macro
 	private static function _set(me:Expr, index:Expr, fieldsOrNewStruct:Array<Expr>):Expr
