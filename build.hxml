@@ -1,4 +1,4 @@
 -cp src
--neko bin/app.n
--main Main
--D macro
+-x Main
+#-main Main
+#-D macro

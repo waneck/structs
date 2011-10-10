@@ -17,24 +17,17 @@ typedef Structs<T> = //where T is AbstractStruct
 	#if flash9 Int
 	#elseif js js.webgl.TypedArray.DataView
 	#elseif (neko || cpp) haxe.io.BytesData
-	#elseif php php.SplFixedArray
+	//#elseif php php.SplFixedArray
 	//java http://www.javamex.com/tutorials/io/nio_buffers.shtml
 	//c# Array of structs really
-	#else Array<Dynamic>
+	//#else Array<Dynamic>
+	#else platform_not_supported_yet
 #end;
 
 //typedef FixedStructs<T, Const> = Structs<T>;
 
 class StructsExtensions
 {
-	
-	@:macro public static function tr(expr:Expr):Expr
-	{
-		trace(PrettyPrint.make(expr));
-		
-		return {expr:EConst(CIdent("null")), pos:expr.pos};
-	}
-	
 	
 	@:macro public static function get(me:ExprRequire<Structs<Dynamic>>, index:Expr, ?fieldExpr:Expr):Expr
 	{
@@ -48,15 +41,131 @@ class StructsExtensions
 				}
 			default:
 		}
+		
+#if display
+		if (fieldExpr != null)
+		{
+			switch(fieldExpr.expr)
+			{
+				case EDisplay(e, isCall):
+					if (isCall) Context.error("Structs.get() cannot contain method calls", fieldExpr.pos);
+					var path = MacroTools.getPath(e);
+					if (path[0] == "this")
+						path.shift();
+					
+					var type = Context.typeof(me);
+					var pos = Context.currentPos();
+
+					//get the underlying struct type (Structs<MyType>, get MyType)
+
+					var structType = switch(type)
+					{
+						case TType(tref, params):
+							params[0];
+						default: null;
+					};
+					var structType = switch(structType)
+					{
+						case TType(tref, _): tref.toString();
+						case TEnum(tref, _): tref.toString();
+						case TInst(tref, _): tref.toString();
+						default: null;
+					}; 
+					var pack:Array<String> = structType.split(".");
+					var name = pack.pop();
+					
+					var block = [];
+					block.push({
+						expr: EVars([{
+							name:"_",
+							type:TPath({
+								pack:pack,
+								name:name,
+								params:[],
+								sub:null
+							}), 
+							expr:null 
+						}]),
+						pos:pos
+					});
+					
+					block.push({expr:EConst(CIdent("_")), pos:pos});
+					
+					var curExpr = {expr:EBlock(block), pos:pos};
+					for (p in path)
+					{
+						if (MacroTools.isUpperFirst(p))
+							curExpr = {expr:EType(curExpr, p), pos:pos};
+						else
+							curExpr = {expr:EField(curExpr, p), pos:pos};
+					}
+					
+					return {expr:EDisplay(curExpr, false), pos:pos};
+				default:
+			}
+		}
+		return {expr:EConst(CIdent("null")), pos:Context.currentPos()};
+#end
 		return _get(me, index, fieldExpr);
 	}
 	
-	@:macro public static function set(fieldsOrNewStruct:Array<ExprRequire<Structs<Dynamic>>>):Expr
+	@:macro public static function set(fieldsOrNewStruct:Array<Expr>):Expr
 	{
+		if (fieldsOrNewStruct.length < 3)
+			Context.error("Incorrect number of call arguments", Context.currentPos());
+		
 		var me = fieldsOrNewStruct.shift();
 		var index = fieldsOrNewStruct.shift();
+#if display
+		//first check to see if there is EDisplay here
+		//if not, ignore
+		
+		return {expr:EConst(CIdent("null")), pos:Context.currentPos()};
+#else
 		return _set(me, index, fieldsOrNewStruct);
+#end
 	}
+	
+	@:macro public static function structs(cl:ExprRequire<Class<Dynamic>>, size:Int):Expr
+	{
+		var clpath = MacroTools.getPath(cl);
+		var type = Context.typeof( Context.parse("{ var _:" + clpath.join(".") + "; _;}", cl.pos) );
+		var pos = Context.currentPos();
+#if display
+		var struct = {totalBytes:0};
+#else
+		//get the underlying struct type (Structs<MyType>, get MyType)
+		var struct = StructInfo.get(type);
+#end
+		var call = MacroTools.mkCall(["haxe", "structs", "internal", "StructsInternal", "internalMake"], [{expr:EConst(CInt((size * struct.totalBytes) + "")), pos:pos}], pos);
+		var block = [];
+		var clname = clpath.pop();
+		
+		var structType = TPType(TPath({
+			pack:clpath,
+			name:clname,
+			params:[],
+			sub:null
+		}));
+		
+		block.push({
+			expr: EVars([{
+				name:"_",
+				type:TPath({
+					pack:["haxe", "structs"],
+					name:"Structs",
+					params:[structType],
+					sub:null
+				}), 
+			expr:call 
+			}]),
+			pos:pos
+		});
+		
+		block.push({expr:EConst(CIdent("_")), pos:pos});
+		return {expr:EBlock(block), pos:pos};
+	}
+	
 	
 #if macro
 	private static function _set(me:Expr, index:Expr, fieldsOrNewStruct:Array<Expr>):Expr
@@ -65,7 +174,6 @@ class StructsExtensions
 		var pos = Context.currentPos();
 		
 		//get the underlying struct type (Structs<MyType>, get MyType)
-		
 		var struct = StructInfo.get(getStructType(type, me.pos));
 		var bytesOffset = {
 			expr:EBinop(OpMult, index, {
@@ -120,6 +228,8 @@ class StructsExtensions
 			
 			var fieldOffset = 0;
 			var lastF = null;
+			if (assign.leftSide[0] == "this")
+				assign.leftSide.shift();
 			for (field in assign.leftSide)
 			{
 				if (lastF != null)
@@ -233,8 +343,13 @@ class StructsExtensions
 				switch(setExpr.expr)
 				{
 					case ENew(path, params):
-						if (path.name != info.path.substr(info.path.lastIndexOf(".")))
+						var n = info.path.lastIndexOf(".");
+						var n = if (n == -1) info.path; else info.path.substr(n);
+						if (path.name != n)
+						{
 							Context.error("Expecting type " + info.path + " but got " + path.name, setExpr.pos);
+						}
+							
 						
 						var fields = Lambda.array(info);
 						for (i in 0...params.length)

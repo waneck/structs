@@ -101,15 +101,19 @@ class MacroTools
 		return { expr:e, pos:expr.pos };
 	}
 	
+	public static function isUpperFirst(string:String) : Bool
+	{
+		var fst = string.charCodeAt(0);
+		return fst >= 'A'.code && fst <= 'Z'.code;
+	}
+	
+	public static function ident(field:String, pos:Position):Expr
+	{
+		return (isUpperFirst(field)) ? mk(EConst(CType(field)), pos) : mk(EConst(CIdent(field)), pos);
+	}
+	
 	public static function path(p:Array<String>, pos) : Expr
 	{
-		function isUpperFirst(string:String) : Bool
-		{
-			var fst = string.charCodeAt(0);
-			return fst >= 'A'.code && fst <= 'Z'.code;
-		}
-		
-		
 		var len = p.length;
 		switch(len)
 		{

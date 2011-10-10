@@ -142,9 +142,7 @@ class StructExtensions
 			});
 		
 		//TODOs:
-		//add new() method
-		//override dispose() method to replicate dispose on other structs -> only the ones that contain Structs<> reference
-		//check on each function for unreferenced this calls -> everything must be used as this.
+		//equals() and hashCode() implementation
 		
 		return newFields;
 #end

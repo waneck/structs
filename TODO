@@ -1,0 +1,25 @@
+- Finish correct #if display conditional implementation
+- Structs<> dispose() function -> needed only for flash9
+- Structs<> iterator function
+- Best way for pure one type Structs<> implementation
+- Implement function calls
+- Implement cpp functions
+	- start of NativeGateway
+- Test suite
+	- pass on cpp, neko, flash9 and js
+	
+---- milestone 1 -----
+
+- flash9 manager - simplified dlmalloc
+- package reengineering for cleaner code
+- documentation
+
+---- milestone 2 -----
+
+- Optimization
+- OptimizedStructUsage
+
+---- milestone 3 -----
+
+- support for all targets
+- integration with NativeGateway

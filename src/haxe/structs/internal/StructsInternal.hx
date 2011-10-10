@@ -26,7 +26,7 @@ class StructsInternal
 #elseif cpp
 		return untyped __global__.__hxcpp_bytearray_get_int16(me, bytesOffset);
 #elseif neko
-		return getByte(bytesOffset) | (getByte(bytesOffset + 1)<<8);
+		return getInt8(me, bytesOffset) | (getInt8(me, bytesOffset + 1)<<8);
 #elseif js
 		return me.getUint16(bytesOffset);
 #else
@@ -41,7 +41,7 @@ class StructsInternal
 #elseif cpp
 		return untyped __global__.__hxcpp_bytearray_get_int32(me, bytesOffset);
 #elseif neko
-		return getByte(bytesOffset) | (getByte(bytesOffset + 1)<<8) | (getByte(bytesOffset + 2)<<16) | (getByte(bytesOffset + 3)<<24);
+		return getInt8(me, bytesOffset) | (getInt8(me, bytesOffset + 1)<<8) | (getInt8(me, bytesOffset + 2)<<16) | (getInt8(me, bytesOffset + 3)<<24);
 #elseif js
 		return me.getInt32(bytesOffset);
 #else
@@ -85,11 +85,11 @@ class StructsInternal
 	public static function isBigEndian():Null<Bool>
 	{
 #if flash9
-		return false;
+		return false; //it's always little endian, AFAIK
 #elseif cpp
 		return testBigEndian();
 #elseif neko
-		return false;
+		return false; //emulated endianness TODO: check first the float / double endianness
 #elseif js
 		return testBigEndian();
 #else
@@ -136,8 +136,8 @@ class StructsInternal
 #elseif cpp
 		untyped __global__.__hxcpp_bytearray_set_int16(me, bytesOffset, val);
 #elseif neko
-		setByte(bytesOffset, val);
-		setByte(bytesOffset + 1, val >> 8);
+		setInt8(me, bytesOffset, val);
+		setInt8(me, bytesOffset + 1, val >> 8);
 #elseif js
 		me.setUint16(bytesOffset, val);
 #else
@@ -174,10 +174,10 @@ class StructsInternal
 #elseif cpp
 		untyped __global__.__hxcpp_bytearray_set_int32(me, bytesOffset, val);
 #elseif neko
-		setByte(bytesOffset, val);
-		setByte(bytesOffset + 1, val >> 8);
-		setByte(bytesOffset + 2, val >> 16);
-		setByte(bytesOffset + 3, val >> 24);
+		setInt8(me, bytesOffset, val);
+		setInt8(me, bytesOffset + 1, val >> 8);
+		setInt8(me, bytesOffset + 2, val >> 16);
+		setInt8(me, bytesOffset + 3, val >> 24);
 #elseif js
 		me.setInt32(bytesOffset, val);
 #else
@@ -215,7 +215,7 @@ class StructsInternal
 #end
 	}
 	
-	public static inline function internalMake<T>(totalBytesLength:Int, totalLength:Int):Structs<T>
+	public static inline function internalMake<T>(totalBytesLength:Int):Structs<T>
 	{
 #if flash9
 		return haxe.structs.management.Manager.malloc(totalBytesLength);
@@ -226,12 +226,12 @@ class StructsInternal
 #elseif neko
 		var ret = untyped __dollar__smake(totalBytesLength);
 		return ret;
-#elseif php
-		return new php.SplFixedArray(totalLength);
 #elseif js
 		var buf = new js.webgl.TypedArray.ArrayBuffer(totalBytesLength);
 		return new js.webgl.TypedArray.DataView(buf);
-#else
+#elseif php //not working
+		return new php.SplFixedArray(totalLength);
+#else //not working
 		var ret = [];
 		ret[totalLength - 1] = 0; //prealloc
 		return ret;
@@ -298,6 +298,7 @@ class StructsInternal
 			s[toLength - 1] = 0;
 		return s;
 #end
+	}
 
 #if neko
 	static var _float_of_bytes = neko.Lib.load("std","float_of_bytes",2);
@@ -305,5 +306,4 @@ class StructsInternal
 	static var _float_bytes = neko.Lib.load("std","float_bytes",2);
 	static var _double_bytes = neko.Lib.load("std","double_bytes",2);
 #end
-	}
 }
