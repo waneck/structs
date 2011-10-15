@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+ 	
+	<!-- ngateway specific -->
+	<script path="test.n" type="post-build"></script>
+	
+	<app main="Main" />
+	
+	<!--<set name="BUILD_DIR" value="Export" ></set>-->
+ 
+	<classpath name="src" ></classpath>
+	<haxelib name="ngate" ></haxelib>
+	<haxelib name="utest" ></haxelib>
+ 
+	<ndll name="std" ></ndll>
+	<ndll name="regexp" ></ndll>
+	<ndll name="zlib" ></ndll>
+ 
+</project>

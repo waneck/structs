@@ -9,7 +9,7 @@ class StructsInternal
 #if flash9
 		return flash.Memory.getByte(me + bytesOffset);
 #elseif cpp
-		return untyped __global__.__hxcpp_bytearray_get_int8(me, bytesOffset);
+		return cpp.MemoryAccess.getByte(me, bytesOffset);
 #elseif neko
 		return untyped __dollar__sget(me, bytesOffset);
 #elseif js
@@ -24,7 +24,7 @@ class StructsInternal
 #if flash9
 		return flash.Memory.getUI16(me + bytesOffset);
 #elseif cpp
-		return untyped __global__.__hxcpp_bytearray_get_int16(me, bytesOffset);
+		return cpp.MemoryAccess.getShort(me, bytesOffset);
 #elseif neko
 		return getInt8(me, bytesOffset) | (getInt8(me, bytesOffset + 1)<<8);
 #elseif js
@@ -39,7 +39,7 @@ class StructsInternal
 #if flash9
 		return flash.Memory.getI32(me + bytesOffset);
 #elseif cpp
-		return untyped __global__.__hxcpp_bytearray_get_int32(me, bytesOffset);
+		return cpp.MemoryAccess.getInt(me, bytesOffset);
 #elseif neko
 		return getInt8(me, bytesOffset) | (getInt8(me, bytesOffset + 1)<<8) | (getInt8(me, bytesOffset + 2)<<16) | (getInt8(me, bytesOffset + 3)<<24);
 #elseif js
@@ -54,7 +54,7 @@ class StructsInternal
 #if flash9
 		return flash.Memory.getFloat(me + bytesOffset);
 #elseif cpp
-		return untyped __global__.__hxcpp_bytearray_get_float32(me, bytesOffset);
+		return cpp.MemoryAccess.getSingle(me, bytesOffset);
 #elseif neko
 		return _float_of_bytes(untyped __dollar__ssub(me,bytesOffset,4),false);
 #elseif js
@@ -69,7 +69,7 @@ class StructsInternal
 #if flash9
 		return flash.Memory.getDouble(me + bytesOffset);
 #elseif cpp
-		return untyped __global__.__hxcpp_bytearray_get_float64(me, bytesOffset);
+		return cpp.MemoryAccess.getDouble(me, bytesOffset);
 #elseif neko
 		return _double_of_bytes(untyped __dollar__ssub(me,bytesOffset,8),false);
 #elseif js
@@ -104,7 +104,7 @@ class StructsInternal
 	{
 		if (bigEndian != null)
 			return bigEndian;
-		var s = internalMake(4,1);
+		var s = internalMake(4);
 		setInt32(s, 0, 1);
 		
 		return bigEndian = (getInt8(s, 3) == 0);
@@ -119,7 +119,7 @@ class StructsInternal
 #if flash9
 		flash.Memory.setByte(me + bytesOffset, val);
 #elseif cpp
-		untyped __global__.__hxcpp_bytearray_set_int8(me, bytesOffset, val);
+		cpp.MemoryAccess.setByte(me, bytesOffset, val);
 #elseif neko
 		untyped __dollar__sset(me, bytesOffset, val);
 #elseif js
@@ -134,7 +134,7 @@ class StructsInternal
 #if flash9
 		flash.Memory.setI16(me + bytesOffset, val);
 #elseif cpp
-		untyped __global__.__hxcpp_bytearray_set_int16(me, bytesOffset, val);
+		cpp.MemoryAccess.setShort(me, bytesOffset, val);
 #elseif neko
 		setInt8(me, bytesOffset, val);
 		setInt8(me, bytesOffset + 1, val >> 8);
@@ -172,7 +172,7 @@ class StructsInternal
 #if flash9
 		flash.Memory.setI32(me + bytesOffset, val);
 #elseif cpp
-		untyped __global__.__hxcpp_bytearray_set_int32(me, bytesOffset, val);
+		cpp.MemoryAccess.setInt(me, bytesOffset, val);
 #elseif neko
 		setInt8(me, bytesOffset, val);
 		setInt8(me, bytesOffset + 1, val >> 8);
@@ -190,7 +190,7 @@ class StructsInternal
 #if flash9
 		flash.Memory.setFloat(me + bytesOffset, val);
 #elseif cpp
-		untyped __global__.__hxcpp_bytearray_set_float32(me, bytesOffset, val);
+		cpp.MemoryAccess.setSingle(me, bytesOffset, val);
 #elseif neko
 		untyped __dollar__sblit(me,bytesOffset,_float_bytes(val,false),0,4);
 #elseif js
@@ -205,7 +205,7 @@ class StructsInternal
 #if flash9
 		flash.Memory.setDouble(me + bytesOffset, val);
 #elseif cpp
-		untyped __global__.__hxcpp_bytearray_set_float64(me, bytesOffset, val);
+		cpp.MemoryAccess.setDouble(me, bytesOffset, val);
 #elseif neko
 		untyped __dollar__sblit(me,bytesOffset,_double_bytes(val,false),0,8);
 #elseif js
@@ -221,7 +221,7 @@ class StructsInternal
 		return haxe.structs.management.Manager.malloc(totalBytesLength);
 #elseif cpp
 		var ret = new haxe.io.BytesData();
-		ret[totalBytesLength - 1] = 0; //prealloc
+		untyped ret[totalBytesLength - 1] = 0; //prealloc
 		return ret;
 #elseif neko
 		var ret = untyped __dollar__smake(totalBytesLength);
@@ -262,7 +262,7 @@ class StructsInternal
 		return haxe.structs.management.Manager.realloc(s, toBytesSize);
 #elseif cpp
 		if (s.length < toBytesSize)
-			s[toBytesSize - 1] = 0;
+		untyped s[toBytesSize - 1] = 0;
 		return s;
 #elseif neko
 		var curSize = untyped __dollar__ssize(s);

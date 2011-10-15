@@ -306,7 +306,7 @@ class StructsExtensions
 	public static function dispose(s:Structs<Dynamic>):Void 
 	{
 #if flash9
-		haxe.management.Manager.free(s);
+		//haxe.management.Manager.free(s);
 #else
 		
 #end

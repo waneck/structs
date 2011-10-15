@@ -12,7 +12,7 @@ class Main
 {
 	static var a:Structs<Matrix>;
 	
-	static function main() 
+	public static function main() 
 	{
 		#if flash9
 		var ba = new flash.utils.ByteArray();
@@ -22,21 +22,20 @@ class Main
 		
 		a = Matrix.structs(11);
 		
-		a.set(10, this.test = 1, test2 = 2, test3 = 3, test4 = 4);
+		a.set(10, this.test = 1, test3 = 3, test4 = 4);
 		
 		trace(a.get(10, test3));
 		//var m = new Matrix();
 		//m.test;
 		trace(a.get(10));
 		
-		a.set(9, this = new Matrix(10,20,30,40));
+		a.set(9, new Matrix(10,20,30,40));
 		trace(a.get(9));
 		trace(a.get(10, this.test));
 		
-		trace(a.set(10, test = 1));
-		trace(a.set(10, this.test2 = 4));
-		trace(a.get(10, this.test2));
-		
+		a.set(10, this.test = 1);
+		a.set(10, this.test2 = 4);
+		a.get(10, this.test2);
 		
 		var f = Single.structs(10);
 		

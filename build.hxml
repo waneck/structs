@@ -1,5 +1,6 @@
 -cp src
 -x Main
+-lib ngate
 #-main Main
 #-D macro
 #-D display
