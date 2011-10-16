@@ -666,11 +666,7 @@ class StructsExtensions
 	{
 		return switch(field.type)
 		{
-			case SFInt64:
-				var getI32_1 = platformGetExpr(me, bytesOffset, {type:SFInt32, byteOffset:field.byteOffset}, pos);
-				var getI32_2 = platformGetExpr(me, bytesOffset, {type:SFInt32, byteOffset:field.byteOffset + 4}, pos);
-				MacroTools.mkCall(["haxe", "Int64", "make"], [getI32_1, getI32_2], pos);
-			case SFInt32:
+			/*case SFInt32:
 				if (Context.defined("neko")) //special case for 31 bits ints
 				{
 					var getI16_1 = platformGetExpr(me, bytesOffset, {type:SFShort, byteOffset:field.byteOffset}, pos);
@@ -679,8 +675,8 @@ class StructsExtensions
 				} else {
 					var getI32 = platformGetExpr(me, bytesOffset, {type:SFInt, byteOffset:field.byteOffset}, pos);
 					MacroTools.mkCall(["haxe", "Int32", "ofInt"], [getI32], pos);
-				}
-			case SFInt, SFShort, SFByte, SFDouble, SFSingle:
+				}*/
+			case SFInt, SFShort, SFByte, SFDouble, SFSingle, SFInt32, SFInt64:
 				var func = switch(field.type)
 				{
 					case SFInt: "getInt32";
@@ -688,6 +684,8 @@ class StructsExtensions
 					case SFByte: "getInt8";
 					case SFDouble: "getDouble";
 					case SFSingle: "getSingle";
+					case SFInt64: "getInt64";
+					case SFInt32: "getInt32h";
 					default: null;
 				};
 				

@@ -82,14 +82,14 @@ class StructsInternal
 	
 	/////////////////// ENDIANNESS
 	
-	public static function isBigEndian():Null<Bool>
+	public static inline function isBigEndian():Null<Bool>
 	{
 #if flash9
 		return false; //it's always little endian, AFAIK
 #elseif cpp
 		return bigEndian;
 #elseif neko
-		return true;
+		return true; //TODO maybe change it to little endian, to speed up a little the float_to_bytes conversion
 #elseif js
 		return bigEndian;
 #else
@@ -149,21 +149,51 @@ class StructsInternal
 	{
 #if neko
 		setInt16(me, bytesOffset, haxe.Int32.toInt( haxe.Int32.shr(haxe.Int32.and(val, haxe.Int32.make(0xffff,0)), 16)));
-		setInt16(me, bytesOffset + 2, haxe.Int32.toInt(haxe.Int32.and(val, haxe.Int32.ofInt(0xffff))));
+		setInt16(me, bytesOffset + 2, getInt32UnsafeVal(haxe.Int32.and(val, haxe.Int32.ofInt(0xffff))));
 #else
-		setInt32(me, bytesOffset, haxe.Int32.toInt(val));
+		setInt32(me, bytesOffset, getInt32UnsafeVal(val));
 #end
 	}
+	
+	public static function getInt32h(me:Structs<Dynamic>, bytesOffset:Int):haxe.Int32 
+	{
+#if neko
+		return haxe.Int32.make(getInt16(me, bytesOffset), getInt16(me, bytesOffset + 2));
+#else
+		return haxe.Int32.ofInt(getInt32(me, bytesOffset));
+#end
+	}
+
+#if !neko	
+	private static inline function getInt32UnsafeVal(v:haxe.Int32):Int 
+	{
+#if cpp
+		return cast v;
+#else
+		return haxe.Int32.toNativeInt(v);
+#end
+	}
+#end
 	
 	public static function setInt64(me:Structs<Dynamic>, bytesOffset:Int, val:haxe.Int64):Void
 	{
 		if (isBigEndian())
 		{
-			setInt32h(me, bytesOffset + 4, haxe.Int64.getHigh(val));
-			setInt32h(me, bytesOffset, haxe.Int64.getLow(val));
-		} else {
 			setInt32h(me, bytesOffset, haxe.Int64.getHigh(val));
 			setInt32h(me, bytesOffset + 4, haxe.Int64.getLow(val));
+		} else {
+			setInt32h(me, bytesOffset + 4, haxe.Int64.getHigh(val));
+			setInt32h(me, bytesOffset, haxe.Int64.getLow(val));
+		}
+	}
+	
+	public static function getInt64(me:Structs<Dynamic>, bytesOffset:Int):haxe.Int64 
+	{
+		return if (isBigEndian())
+		{
+			haxe.Int64.make(getInt32h(me, bytesOffset), getInt32h(me, bytesOffset + 4));
+		} else {
+			haxe.Int64.make(getInt32h(me, bytesOffset + 4), getInt32h(me, bytesOffset));
 		}
 	}
 	

@@ -1,4 +1,5 @@
 package structs;
+import haxe.structs.internal.StructsInternal;
 import utest.Assert;
 import haxe.structs.Structs;
 import haxe.structs.AbstractStruct;
@@ -22,6 +23,8 @@ class BasicStructsTests
 		basicStruct = BasicStruct.structs(10);
 		complexStruct = ComplexStruct1.structs(10);
 		complexStruct2 = ComplexStruct2.structs(10);
+		
+		trace("Am I big endian? " + StructsInternal.isBigEndian());
 	}
 	
 	public function test_Initialization():Void 
@@ -103,6 +106,22 @@ class BasicStructsTests
 		Assert.floatEquals(1 / Math.sqrt(number), invSqrt(number), 0.01);
 	}
 	
+	public function test_Int64Endianness():Void 
+	{
+		var helper = Int64Helper.structs(1);
+		var i64 = Int64.make(Int32.make(0x1234, 0x5678), Int32.make(0x9012, 0x3456));
+		helper.set(0, int64 = i64);
+		var i1 = helper.get(0, int1);
+		var i2 = helper.get(0, int2);
+		
+		if (StructsInternal.isBigEndian())
+		{
+			Assert.isTrue(Int32.compare(Int32.make(0x1234, 0x5678), i1) == 0);
+		} else {
+			Assert.isTrue(Int32.compare(Int32.make(0x1234, 0x5678), i2) == 0);
+		}
+	}
+	
 	private function invSqrt(x:Float):Float 
 	{
 		var helper = InvSqrtHelper.structs(1);
@@ -118,6 +137,16 @@ class BasicStructsTests
 	
 }
 
+@:structLayout(Explicit)
+class Int64Helper extends AbstractStruct
+{
+	@:fieldOffset(0)
+	public var int64:Int64;
+	@:fieldOffset(0)
+	public var int1:Int32;
+	@:fieldOffset(4)
+	public var int2:Int32;
+}
 
 @:structLayout(Explicit)
 class InvSqrtHelper extends AbstractStruct
