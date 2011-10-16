@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>src/Main.hx</string>
+	<string>src/haxe/macro/Map.hx</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -18,7 +18,7 @@
 			<key>filename</key>
 			<string>build.hxml</string>
 			<key>lastUsed</key>
-			<date>2011-10-10T17:28:52Z</date>
+			<date>2011-10-16T03:01:27Z</date>
 		</dict>
 		<dict>
 			<key>expanded</key>
@@ -39,6 +39,8 @@
 			<string>bin</string>
 		</dict>
 		<dict>
+			<key>expanded</key>
+			<true/>
 			<key>name</key>
 			<string>test</string>
 			<key>regexFolderFilter</key>
@@ -51,14 +53,28 @@
 	<integer>367</integer>
 	<key>metaData</key>
 	<dict>
+		<key>bin/cpp/mac/obj/include/cpp/MemoryAccess.h</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>0</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>29</integer>
+		</dict>
 		<key>build.hxml</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>1</integer>
+				<integer>15</integer>
 				<key>line</key>
-				<integer>3</integer>
+				<integer>25</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -70,23 +86,37 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>12</integer>
+				<integer>16</integer>
 				<key>line</key>
-				<integer>31</integer>
+				<integer>7</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>10</integer>
+			<integer>25</integer>
+		</dict>
+		<key>src/cpp/MemoryAccess.hx</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>33</integer>
+				<key>line</key>
+				<integer>16</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
 		</dict>
 		<key>src/haxe/macro/MacroTools.hx</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>18</integer>
+				<integer>3</integer>
 				<key>line</key>
-				<integer>45</integer>
+				<integer>69</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -98,23 +128,9 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
+				<integer>18</integer>
 				<key>line</key>
-				<integer>0</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>0</integer>
-		</dict>
-		<key>src/haxe/structs/OptimizedStructUsage.hx</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
-				<integer>9</integer>
+				<integer>15</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -126,28 +142,28 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>59</integer>
+				<integer>4</integer>
 				<key>line</key>
-				<integer>282</integer>
+				<integer>17</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>262</integer>
+			<integer>0</integer>
 		</dict>
 		<key>src/haxe/structs/Structs.hx</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>4</integer>
+				<integer>26</integer>
 				<key>line</key>
-				<integer>308</integer>
+				<integer>685</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>288</integer>
+			<integer>661</integer>
 		</dict>
 		<key>src/haxe/structs/Tools.hx</key>
 		<dict>
@@ -163,49 +179,19 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
-		<key>src/haxe/structs/internal/StructInternal.hx</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
-				<integer>0</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>0</integer>
-		</dict>
 		<key>src/haxe/structs/internal/StructsInternal.hx</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>18</integer>
+				<integer>17</integer>
 				<key>line</key>
-				<integer>249</integer>
+				<integer>15</integer>
 			</dict>
-			<key>columnSelection</key>
-			<false/>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>229</integer>
-			<key>selectFrom</key>
-			<dict>
-				<key>column</key>
-				<integer>11</integer>
-				<key>line</key>
-				<integer>249</integer>
-			</dict>
-			<key>selectTo</key>
-			<dict>
-				<key>column</key>
-				<integer>18</integer>
-				<key>line</key>
-				<integer>249</integer>
-			</dict>
+			<integer>0</integer>
 		</dict>
 		<key>src/haxe/structs/management/Manager.hx</key>
 		<dict>
@@ -221,14 +207,56 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
-		<key>src/haxe/structs/options/Types.hx</key>
+		<key>src/haxe/structs/options/StructLayout.hx</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>5</integer>
+				<key>line</key>
+				<integer>15</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
+		<key>src/js/webgl/TypedArray.hx</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>22</integer>
+				<key>line</key>
+				<integer>220</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>206</integer>
+		</dict>
+		<key>src/opengl/GL.hx</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
 				<integer>0</integer>
 				<key>line</key>
-				<integer>14</integer>
+				<integer>0</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
+		<key>test/TestAll.hx</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>1</integer>
+				<key>line</key>
+				<integer>12</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -239,17 +267,20 @@
 	<key>openDocuments</key>
 	<array>
 		<string>src/Main.hx</string>
-		<string>src/haxe/structs/internal/StructInternal.hx</string>
-		<string>src/haxe/structs/internal/StructsInternal.hx</string>
+		<string>src/cpp/MemoryAccess.hx</string>
+		<string>src/opengl/GL.hx</string>
+		<string>bin/cpp/mac/obj/include/cpp/MemoryAccess.h</string>
 		<string>src/haxe/structs/management/Manager.hx</string>
 		<string>src/haxe/macro/Map.hx</string>
-		<string>src/haxe/structs/options/Types.hx</string>
+		<string>src/haxe/structs/internal/StructsInternal.hx</string>
 		<string>src/haxe/structs/Structs.hx</string>
-		<string>src/haxe/structs/OptimizedStructUsage.hx</string>
+		<string>test/TestAll.hx</string>
+		<string>src/haxe/structs/options/StructLayout.hx</string>
+		<string>src/js/webgl/TypedArray.hx</string>
+		<string>build.hxml</string>
 		<string>src/haxe/structs/StructExtensions.hx</string>
 		<string>src/haxe/structs/Tools.hx</string>
 		<string>src/haxe/macro/MacroTools.hx</string>
-		<string>build.hxml</string>
 	</array>
 	<key>showFileHierarchyDrawer</key>
 	<true/>

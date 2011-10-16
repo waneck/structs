@@ -22,6 +22,7 @@ V Test suite
 - Implement function calls
 - Optimization
 - OptimizedStructUsage
+- implement StructStatic<Type, Const> and compile-time struct alloc for flash target
 
 ---- milestone 3 -----
 
