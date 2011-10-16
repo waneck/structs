@@ -2,10 +2,10 @@ V Finish correct #if display conditional implementation
 V Structs<> dispose() function -> needed only for flash9
 V Structs<> iterator function
 V Best way for pure one type Structs<> implementation (Structs<Float>)
-- Implement cpp functions
-	- start of NativeGateway
-- Test suite
-	- pass on cpp, neko, flash9 and js
+V Implement cpp functions
+	V start of NativeGateway
+V Test suite
+	V pass on cpp, neko, flash9 and js
 	
 ---- milestone 1 -----
 
@@ -14,6 +14,8 @@ V Best way for pure one type Structs<> implementation (Structs<Float>)
 - flash9 manager - simplified dlmalloc
 - package reengineering for cleaner code
 - documentation
+- Pointer<> implementation
+- flag STRUCTS_CHECK_DISPOSE & other safety flags
 
 ---- milestone 2 -----
 

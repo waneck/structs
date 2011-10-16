@@ -5,7 +5,9 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.structs.StructExtensions;
-import haxe.macro.MacroTools;
+import macrotools.MacroTools;
+import macrotools.TypeTools;
+using Lambda;
 #end
 
 /**
@@ -21,7 +23,8 @@ typedef Structs<T> = //where T is AbstractStruct
 	//java http://www.javamex.com/tutorials/io/nio_buffers.shtml
 	//c# Array of structs really
 	//#else Array<Dynamic>
-	#else platform_not_supported_yet
+	#else 
+		#error "Platform not supported yet"
 #end;
 
 //typedef FixedStructs<T, Const> = Structs<T>;
@@ -137,8 +140,15 @@ class StructsExtensions
 	{
 		var type = Context.typeof(me);
 		var pos = Context.currentPos();
-		var struct = StructInfo.get(getStructType(type, me.pos));
 		
+#if display
+		var stype = getStructType(type, me.pos);
+		var path = TypeTools.path(Context.follow(stype));
+		
+		var struct = {totalBytes:0, isNativeType:(path == "Int" || path == "Float"), path:path, iterator:function() return [].iterator() };
+#else
+		var struct = StructInfo.get(getStructType(type, me.pos));
+#end
 		var createdVar = switch(createdVar.expr)
 		{
 			case EConst(c):
@@ -263,6 +273,21 @@ class StructsExtensions
 #end
 	}
 	
+	@:macro public static function structsLength(me:ExprRequire<Structs<Dynamic>>):Expr 
+	{
+		var pos = Context.currentPos();
+#if display
+		return {expr:ECons(CInt("0")), pos:pos};
+#else
+		var type = Context.typeof(me);
+		var struct = StructInfo.get(getStructType(type, me.pos));
+		
+		var sizeCall = MacroTools.mkCall(["haxe", "structs", "internal", "StructsInternal", "internalSize"], [me], pos);
+		var div = {expr:EBinop(OpDiv, sizeCall, {expr:EConst(CInt(struct.totalBytes + "")), pos:pos}), pos:pos};
+		return MacroTools.mkCall(["Std", "int"], [div], pos);
+#end
+	}
+	
 	@:macro public static function structs(cl:ExprRequire<Class<Dynamic>>, size:Int):Expr
 	{
 		var clpath = MacroTools.getPath(cl);
@@ -318,6 +343,8 @@ class StructsExtensions
 		var type = Context.typeof(me);
 		var pos = Context.currentPos();
 		
+		var block = [];
+		
 		//get the underlying struct type (Structs<MyType>, get MyType)
 		var struct = StructInfo.get(getStructType(type, me.pos));
 		var bytesOffset = {
@@ -327,6 +354,14 @@ class StructsExtensions
 			}),
 			pos:index.pos
 		};
+		
+		switch(index.expr)
+		{
+			case EConst(c):
+			default:
+				block.push({expr:EVars([{ name:"__offset__", type:null, expr:bytesOffset}]), pos:pos});
+				bytesOffset = {expr:EConst(CIdent("__offset__")), pos:pos};
+		}
 		
 		if (fieldsOrNewStruct.length < 1) Context.error("Too few arguments", pos);
 		
@@ -365,7 +400,7 @@ class StructsExtensions
 			return e;
 		}
 		
-		var block = [];
+		
 		for (assignField in fieldsOrNewStruct)
 		{
 			var struct = struct;
@@ -400,20 +435,22 @@ class StructsExtensions
 				}
 			}
 
-			if (fieldOffset != 0)
-				bytesOffset = {
+			var bytesOffset = if (fieldOffset != 0)
+				{
 					expr:EBinop(OpAdd, bytesOffset, {
 						expr: EConst(CInt(fieldOffset + "")),
 						pos:pos
 					}),
 					pos:pos
 				};
+			else
+				bytesOffset;
 
 			var e = setFieldExpr(me, bytesOffset, cast lastF, assign.rightSide, assign.assignOp, pos);
 			block.push(e);
 		}
 		
-		var e = {expr:EBlock(block), pos:pos};
+		var e = if (block.length > 1) {expr:EBlock(block), pos:pos}; else block[0];
 		trace(PrettyPrint.make(e));
 		return e;
 	}

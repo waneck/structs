@@ -1,6 +1,26 @@
 -cp src
--x Main
+-cp test
+-js bin/js.js
+# @tm-preview
+-main TestAll
 -lib ngate
+-lib utest
+-lib macrotools
+--next
+-cp src
+-cp test
+-x TestAll
+-lib ngate
+-lib utest
+-lib macrotools
 #-main Main
 #-D macro
 #-D display
+--next 
+-cp src
+-cp test
+-swf9 bin/flash.swf
+-main TestAll
+-lib ngate
+-lib utest
+-lib macrotools

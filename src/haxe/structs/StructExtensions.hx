@@ -16,7 +16,39 @@ class StructExtensions
 	static function build():Array<Field>
 	{
 #if display
-		return null;
+		var pos = Context.currentPos();
+		
+		var ret = [];
+		var newArgs = [];
+		for (field in Context.getBuildFields())
+		{
+			ret.push(field);
+			newArgs.push({
+				name:field.name,
+				opt:true,
+				type:null,
+				value:null
+			});
+		}
+		
+		ret.push({
+			name:"new",
+			doc:null,
+			access:[APublic],
+			kind:FFun({
+				args:newArgs,
+				ret:null,
+				expr:{
+					expr:EBlock([]),
+					pos:pos
+				},
+				params:[]
+			}),
+			pos:pos,
+			meta:[]
+		});
+		
+		return ret;
 #else
 		var fields = Context.getBuildFields();
 		

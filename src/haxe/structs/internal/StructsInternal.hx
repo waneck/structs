@@ -26,7 +26,7 @@ class StructsInternal
 #elseif cpp
 		return cpp.MemoryAccess.getShort(me, bytesOffset);
 #elseif neko
-		return getInt8(me, bytesOffset) | (getInt8(me, bytesOffset + 1)<<8);
+		return getInt8(me, bytesOffset + 1) | (getInt8(me, bytesOffset)<<8);
 #elseif js
 		return me.getUint16(bytesOffset);
 #else
@@ -41,7 +41,7 @@ class StructsInternal
 #elseif cpp
 		return cpp.MemoryAccess.getInt(me, bytesOffset);
 #elseif neko
-		return getInt8(me, bytesOffset) | (getInt8(me, bytesOffset + 1)<<8) | (getInt8(me, bytesOffset + 2)<<16) | (getInt8(me, bytesOffset + 3)<<24);
+		return (getInt8(me, bytesOffset) << 24) | (getInt8(me, bytesOffset + 1)<<16) | (getInt8(me, bytesOffset + 2)<<8) | (getInt8(me, bytesOffset + 3));
 #elseif js
 		return me.getInt32(bytesOffset);
 #else
@@ -56,7 +56,7 @@ class StructsInternal
 #elseif cpp
 		return cpp.MemoryAccess.getSingle(me, bytesOffset);
 #elseif neko
-		return _float_of_bytes(untyped __dollar__ssub(me,bytesOffset,4),false);
+		return _float_of_bytes(untyped __dollar__ssub(me,bytesOffset,4),true);
 #elseif js
 		return me.getFloat32(bytesOffset);
 #else
@@ -71,7 +71,7 @@ class StructsInternal
 #elseif cpp
 		return cpp.MemoryAccess.getDouble(me, bytesOffset);
 #elseif neko
-		return _double_of_bytes(untyped __dollar__ssub(me,bytesOffset,8),false);
+		return _double_of_bytes(untyped __dollar__ssub(me,bytesOffset,8),true);
 #elseif js
 		return me.getFloat64(bytesOffset);
 #else
@@ -87,27 +87,27 @@ class StructsInternal
 #if flash9
 		return false; //it's always little endian, AFAIK
 #elseif cpp
-		return testBigEndian();
+		return bigEndian;
 #elseif neko
-		return false; //emulated endianness TODO: check first the float / double endianness
+		return true;
 #elseif js
-		return testBigEndian();
+		return bigEndian;
 #else
 		return null;
 #end
 	}
 	
 #if (cpp || js)
-	private static var bigEndian:Null<Bool> = null;
+	private static var bigEndian:Bool = _isBigEndian();
 
-	private static function testBigEndian():Bool
+	private static function _isBigEndian():Bool
 	{
 		if (bigEndian != null)
 			return bigEndian;
 		var s = internalMake(4);
 		setInt32(s, 0, 1);
 		
-		return bigEndian = (getInt8(s, 3) == 0);
+		return getInt8(s, 0) != 1;
 	}
 	
 #end
@@ -136,8 +136,8 @@ class StructsInternal
 #elseif cpp
 		cpp.MemoryAccess.setShort(me, bytesOffset, val);
 #elseif neko
-		setInt8(me, bytesOffset, val);
-		setInt8(me, bytesOffset + 1, val >> 8);
+		setInt8(me, bytesOffset, val >> 8);
+		setInt8(me, bytesOffset + 1, val);
 #elseif js
 		me.setUint16(bytesOffset, val);
 #else
@@ -148,7 +148,7 @@ class StructsInternal
 	public static function setInt32h(me:Structs<Dynamic>, bytesOffset:Int, val:haxe.Int32):Void
 	{
 #if neko
-		setInt16(me, bytesOffset, haxe.Int32.toInt(haxe.Int32.and(val, haxe.Int32.shl(haxe.Int32.ofInt(0xffff), 16))));
+		setInt16(me, bytesOffset, haxe.Int32.toInt( haxe.Int32.shr(haxe.Int32.and(val, haxe.Int32.make(0xffff,0)), 16)));
 		setInt16(me, bytesOffset + 2, haxe.Int32.toInt(haxe.Int32.and(val, haxe.Int32.ofInt(0xffff))));
 #else
 		setInt32(me, bytesOffset, haxe.Int32.toInt(val));
@@ -174,10 +174,10 @@ class StructsInternal
 #elseif cpp
 		cpp.MemoryAccess.setInt(me, bytesOffset, val);
 #elseif neko
-		setInt8(me, bytesOffset, val);
-		setInt8(me, bytesOffset + 1, val >> 8);
-		setInt8(me, bytesOffset + 2, val >> 16);
-		setInt8(me, bytesOffset + 3, val >> 24);
+		setInt8(me, bytesOffset, val >> 24);
+		setInt8(me, bytesOffset + 1, val >> 16);
+		setInt8(me, bytesOffset + 2, val >> 8);
+		setInt8(me, bytesOffset + 3, val);
 #elseif js
 		me.setInt32(bytesOffset, val);
 #else
@@ -192,9 +192,9 @@ class StructsInternal
 #elseif cpp
 		cpp.MemoryAccess.setSingle(me, bytesOffset, val);
 #elseif neko
-		untyped __dollar__sblit(me,bytesOffset,_float_bytes(val,false),0,4);
+		untyped __dollar__sblit(me,bytesOffset,_float_bytes(val,true),0,4);
 #elseif js
-		me.setFloat32(bytesOffset), val;
+		me.setFloat32(bytesOffset, val);
 #else
 		me[bytesOffset] = val;
 #end
@@ -207,7 +207,7 @@ class StructsInternal
 #elseif cpp
 		cpp.MemoryAccess.setDouble(me, bytesOffset, val);
 #elseif neko
-		untyped __dollar__sblit(me,bytesOffset,_double_bytes(val,false),0,8);
+		untyped __dollar__sblit(me,bytesOffset,_double_bytes(val,true),0,8);
 #elseif js
 		me.setFloat64(bytesOffset, val);
 #else
@@ -283,7 +283,7 @@ class StructsInternal
 			var buf2 = new js.webgl.TypedArray.ArrayBuffer(toBytesSize);
 			var ret = new js.webgl.TypedArray.DataView(buf2);
 
-			for (i in 0...(s.buffer.byteLength / 4))
+			for (i in 0...Std.int(s.buffer.byteLength / 4))
 			{
 				ret.setInt32(i*4, s.getInt32(i*4));
 			}

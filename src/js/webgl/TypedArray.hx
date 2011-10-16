@@ -1,5 +1,5 @@
 package js.webgl;
-import haxe.structs.Types;
+import haxe.structs.options.Types;
 
 /**
  *  Based on Editor's Draft 12 September 2011
@@ -48,7 +48,7 @@ extern private class ArrayBufferView
 }
 
 @:native("TypedArray")
-extern private class TypedArray<T> extends ArrayBufferView<T>, implements ArrayAccess<T>
+extern private class TypedArray<T> extends ArrayBufferView, implements ArrayAccess<T>
 {
 	/**
 	 *  The size in bytes of each element in the array.
@@ -71,6 +71,9 @@ extern private class TypedArray<T> extends ArrayBufferView<T>, implements ArrayA
 	 *  If length is not explicitly specified, the length of the ArrayBuffer minus the byteOffset must be a multiple 
 	 *  of the element size of the specific type, or an exception is raised.
 	 **/
+	@:overload(function(length:Int):Void {})
+	@:overload(function(array:TypedArray<T>):Void {})
+	@:overload(function(array:Array<T>):Void {})
 	public function new(buffer:ArrayBuffer, ?byteOffset:Int, ?length:Int):Void;
 	
 	/**
@@ -110,6 +113,8 @@ extern private class TypedArray<T> extends ArrayBufferView<T>, implements ArrayA
 	 **/
 	public function get(index:Int):T;
 	
+	@:overload(function(array:TypedArray<T>, ?offset:Int):Void {})
+	@:overload(function(array:Array<T>, ?offset:Int):Void {})
 	public function set(index:Int, val:T):Void;
 	/**
 	 *  Set multiple values, reading input values from the array.
@@ -158,6 +163,11 @@ extern private class TypedArray<T> extends ArrayBufferView<T>, implements ArrayA
 @:native("Uint8ClampedArray")
 extern class Uint8ClampedArray extends TypedArray<Byte>
 {
+	@:overload(function(length:Int):Void {})
+	@:overload(function(array:TypedArray<Byte>):Void {})
+	@:overload(function(array:Array<Byte>):Void {})
+	public function new(buffer:ArrayBuffer, ?byteOffset:Int, ?length:Int):Void;
+	
 	/**
 	 *  Create a new ArrayBuffer with enough bytes to hold length elements of this typed array, 
 	 *  then creates a typed array view referring to the full buffer. As with a directly constructed ArrayBuffer, 
@@ -208,6 +218,7 @@ extern class DataView extends ArrayBufferView
     // These methods raise an exception if they would read
     // beyond the end of the view.
 	public function getInt8(byteOffset:Int):Byte;
+	public function getUint8(byteOffset:Int):Byte;
 	public function getInt16(byteOffset:Int, ?littleEndian:Bool):Short;
 	public function getUint16(byteOffset:Int, ?littleEndian:Bool):Short;
 	public function getInt32(byteOffset:Int, ?littleEndian:Bool):Int;
@@ -239,6 +250,11 @@ extern class DataView extends ArrayBufferView
 @:native("Int8Array")
 extern class Int8Array extends TypedArray<Byte>
 {
+	@:overload(function(length:Int):Void {})
+	@:overload(function(array:TypedArray<Byte>):Void {})
+	@:overload(function(array:Array<Byte>):Void {})
+	public function new(buffer:ArrayBuffer, ?byteOffset:Int, ?length:Int):Void;
+	
 	public static inline function ofLength(length:Int):Int8Array
 	{
 		untyped return new Int8Array(length);
@@ -257,6 +273,11 @@ extern class Int8Array extends TypedArray<Byte>
 @:native("Uint8Array")
 extern class Uint8Array extends TypedArray<Byte>
 {
+	@:overload(function(length:Int):Void {})
+	@:overload(function(array:TypedArray<Byte>):Void {})
+	@:overload(function(array:Array<Byte>):Void {})
+	public function new(buffer:ArrayBuffer, ?byteOffset:Int, ?length:Int):Void;
+	
 	public static inline function ofLength(length:Int):Uint8Array
 	{
 		untyped return new Uint8Array(length);
@@ -275,6 +296,11 @@ extern class Uint8Array extends TypedArray<Byte>
 @:native("Int16Array")
 extern class Int16Array extends TypedArray<Short>
 {
+	@:overload(function(length:Int):Void {})
+	@:overload(function(array:TypedArray<Short>):Void {})
+	@:overload(function(array:Array<Short>):Void {})
+	public function new(buffer:ArrayBuffer, ?byteOffset:Int, ?length:Int):Void;
+	
 	public static inline function ofLength(length:Int):Int16Array
 	{
 		untyped return new Int16Array(length);
@@ -293,6 +319,11 @@ extern class Int16Array extends TypedArray<Short>
 @:native("Uint16Array")
 extern class Uint16Array extends TypedArray<Short>
 {
+	@:overload(function(length:Int):Void {})
+	@:overload(function(array:TypedArray<Short>):Void {})
+	@:overload(function(array:Array<Short>):Void {})
+	public function new(buffer:ArrayBuffer, ?byteOffset:Int, ?length:Int):Void;
+	
 	public static inline function ofLength(length:Int):Uint16Array
 	{
 		untyped return new Uint16Array(length);
@@ -311,6 +342,11 @@ extern class Uint16Array extends TypedArray<Short>
 @:native("Int32Array")
 extern class Int32Array extends TypedArray<Int>
 {
+	@:overload(function(length:Int):Void {})
+	@:overload(function(array:TypedArray<Int>):Void {})
+	@:overload(function(array:Array<Int>):Void {})
+	public function new(buffer:ArrayBuffer, ?byteOffset:Int, ?length:Int):Void;
+	
 	public static inline function ofLength(length:Int):Int32Array
 	{
 		untyped return new Int32Array(length);
@@ -329,6 +365,11 @@ extern class Int32Array extends TypedArray<Int>
 @:native("Uint32Array")
 extern class Uint32Array extends TypedArray<Int>
 {
+	@:overload(function(length:Int):Void {})
+	@:overload(function(array:TypedArray<Int>):Void {})
+	@:overload(function(array:Array<Int>):Void {})
+	public function new(buffer:ArrayBuffer, ?byteOffset:Int, ?length:Int):Void;
+	
 	public static inline function ofLength(length:Int):Uint32Array
 	{
 		untyped return new Uint32Array(length);
@@ -347,6 +388,11 @@ extern class Uint32Array extends TypedArray<Int>
 @:native("Float32Array")
 extern class Float32Array extends TypedArray<Single>
 {
+	@:overload(function(length:Int):Void {})
+	@:overload(function(array:TypedArray<Single>):Void {})
+	@:overload(function(array:Array<Single>):Void {})
+	public function new(buffer:ArrayBuffer, ?byteOffset:Int, ?length:Int):Void;
+	
 	public static inline function ofLength(length:Int):Float32Array
 	{
 		untyped return new Float32Array(length);
@@ -365,6 +411,11 @@ extern class Float32Array extends TypedArray<Single>
 @:native("Float64Array")
 extern class Float64Array extends TypedArray<Double>
 {
+	@:overload(function(length:Int):Void {})
+	@:overload(function(array:TypedArray<Double>):Void {})
+	@:overload(function(array:Array<Double>):Void {})
+	public function new(buffer:ArrayBuffer, ?byteOffset:Int, ?length:Int):Void;
+	
 	public static inline function ofLength(length:Int):Float64Array
 	{
 		untyped return new Float64Array(length);

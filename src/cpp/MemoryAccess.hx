@@ -14,7 +14,7 @@ class MemoryAccess implements comtacti.native.InlinedHxcpp
 {
 	public static inline function getByte(buffer:BytesData, addr:Int):Byte
 	{
-		return untyped __cpp__("{0}->GetBase()[addr]", buffer);
+		return untyped __cpp__("((int) (unsigned char) ({0}->GetBase()[addr]))", buffer);
 	}
 	
 	public static inline function getDouble(buffer:BytesData, addr:Int):Double

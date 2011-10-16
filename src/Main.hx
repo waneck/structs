@@ -20,6 +20,8 @@ class Main
 		flash.Memory.select(ba);
 		#end
 		
+		trace("HERE");
+		
 		a = Matrix.structs(11);
 		
 		a.set(10, this.test = 1, test3 = 3, test4 = 4);

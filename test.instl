@@ -4,11 +4,12 @@
 	<!-- ngateway specific -->
 	<script path="test.n" type="post-build"></script>
 	
-	<app main="Main" />
+	<app main="TestAll" />
 	
 	<!--<set name="BUILD_DIR" value="Export" ></set>-->
  
 	<classpath name="src" ></classpath>
+	<classpath name="test" />
 	<haxelib name="ngate" ></haxelib>
 	<haxelib name="utest" ></haxelib>
  
