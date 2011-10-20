@@ -1,0 +1,15 @@
+<project name="structs" url="http://code.google.com/p/structs/" license="BSD">
+    <user name="waneck"/>
+	<tag v="cross"/>
+    <tag v="utility"/>
+    <tag v="native"/>
+	<tag v="opengl"/>
+	<tag v="graphics"/>
+	<tag v="optimization"/>
+	<tag v="flash9"/>
+	<tag v="memory"/>
+    <description>Structs is a library to work with arrays of c-like unboxed structures. It's an optimization and compatibility library, so it's made to achieve the best performance as possible on its platforms while also being able to create structures interoperable with native C code. On Flash9, it uses flash's Memory API. Also it is intended to make the own "boxed" structures (classes) to work in an optimized way when necessary.</description>
+    <version name="0.0.1">Initial version. Unstable API, support for flash9, js, cpp and neko. No optimizations yet.</version>
+    <depends name="macrotools"/>
+	<depends name="ngate"/>
+</project>
