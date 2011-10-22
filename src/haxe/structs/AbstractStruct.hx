@@ -6,7 +6,7 @@ import haxe.structs.options.Types;
  * @author waneck
  */
 
-#if !macro @:autoBuild(haxe.structs.StructExtensions.build()) #end
+#if !macro @:autoBuild(haxe.structs.internal.StructExtensions.build()) #end
 class AbstractStruct 
 {
 	

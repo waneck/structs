@@ -1,6 +1,0 @@
-package structs;
-
-class BasicStructTests
-{
-	
-}

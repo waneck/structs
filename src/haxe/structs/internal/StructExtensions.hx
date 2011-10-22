@@ -1,4 +1,4 @@
-package haxe.structs;
+package haxe.structs.internal;
 import haxe.structs.options.StructLayout;
 import haxe.macro.MacroTools;
 import haxe.macro.Context;

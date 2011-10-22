@@ -1,10 +1,10 @@
 package haxe.structs;
-import haxe.macro.PrettyPrint;
 #if macro
+import haxe.macro.PrettyPrint;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
-import haxe.structs.StructExtensions;
+import haxe.structs.internal.StructExtensions;
 import macrotools.MacroTools;
 import macrotools.TypeTools;
 using Lambda;

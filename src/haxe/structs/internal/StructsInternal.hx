@@ -149,7 +149,7 @@ class StructsInternal
 	{
 #if neko
 		setInt16(me, bytesOffset, haxe.Int32.toInt( haxe.Int32.shr(haxe.Int32.and(val, haxe.Int32.make(0xffff,0)), 16)));
-		setInt16(me, bytesOffset + 2, getInt32UnsafeVal(haxe.Int32.and(val, haxe.Int32.ofInt(0xffff))));
+		setInt16(me, bytesOffset + 2, haxe.Int32.toInt(haxe.Int32.and(val, haxe.Int32.ofInt(0xffff))));
 #else
 		setInt32(me, bytesOffset, getInt32UnsafeVal(val));
 #end
