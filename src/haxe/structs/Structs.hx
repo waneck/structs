@@ -396,7 +396,7 @@ class StructsExtensions
 			if (fieldsOrNewStruct.length > 1)
 				separateOpAssign(fieldsOrNewStruct[0], true); //throw error
 			var e = setFieldExpr(me, bytesOffset, {type:SFStruct(struct), byteOffset:0}, fieldsOrNewStruct[0], null, pos);
-			trace(PrettyPrint.make(e));
+			//trace(PrettyPrint.make(e));
 			return e;
 		}
 		
@@ -451,7 +451,7 @@ class StructsExtensions
 		}
 		
 		var e = if (block.length > 1) {expr:EBlock(block), pos:pos}; else block[0];
-		trace(PrettyPrint.make(e));
+		//trace(PrettyPrint.make(e));
 		return e;
 	}
 	
@@ -619,7 +619,7 @@ class StructsExtensions
 			realField = haxe.macro.MacroTools.getPath(fieldExpr);
 		} else {
 			var e = getFieldExpr(me, bytesOffset, {type:SFStruct(struct), byteOffset:0}, pos);
-			trace(PrettyPrint.make(e));
+			//trace(PrettyPrint.make(e));
 			return e;
 		}
 		
@@ -658,7 +658,7 @@ class StructsExtensions
 			};
 		
 		var e = getFieldExpr(me, bytesOffset, cast lastF, pos);
-		trace(PrettyPrint.make(e));
+		//trace(PrettyPrint.make(e));
 		return e;
 	}
 	

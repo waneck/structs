@@ -35,6 +35,8 @@ class PrettyPrint
 	{
 		return switch(e.expr)
 		{
+			case ECheckType(e,_): 
+				return _mk(e, sb);
 			case EConst( c ):
 				switch(c)
 				{
@@ -247,6 +249,9 @@ class PrettyPrint
 	{
 		return switch(ct)
 		{
+			case TOptional(o):
+				buf.add("?");
+				ctToString(o,buf);
 			case TPath(p):
 				var pack = p.pack.copy();
 				pack.push(p.name);

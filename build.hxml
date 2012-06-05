@@ -24,3 +24,11 @@
 -lib ngate
 -lib utest
 -lib macrotools
+--next 
+-cp src
+-cp test
+-cpp bin/cpp
+-main TestAll
+-lib ngate
+-lib utest
+-lib macrotools

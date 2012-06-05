@@ -326,7 +326,7 @@ class StructInfo
 		
 		return switch(type)
 		{
-			case TFunction(_, _), TAnonymous(_), TParent(_), TExtend(_, _): 
+			case TFunction(_, _), TAnonymous(_), TParent(_), TExtend(_, _), TOptional(_): 
 				Context.error("Only basic types and other Struct types can be used as Struct fields", pos);
 			case TPath(tp):
 				var path = if (tp.pack.length > 0) tp.pack.join(".") + "." + tp.name; else tp.name;

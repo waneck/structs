@@ -76,6 +76,12 @@ class BasicStructsTests
 	public function test_ComplexStructGetSet():Void 
 	{
 		var i = 0;
+		#if cpp
+		Assert.same({}, { 
+			basicStruct.set(i++, a=i*111, b=i*10000, c=i*1000000000, d=i*50, e=i*100.0);
+			basicStruct;
+		});
+		#end
 		complexStruct.set(i, a=i+0.0, basic.a=i, basic.b=i, basic.c=i, basic.d=i, basic.e=i+0.0, b=i+0.0);
 		Assert.same(complexStruct.get(i), new ComplexStruct1(i+0.0,new BasicStruct(i,i,i,i,i+0.0),i+0.0));
 	}
