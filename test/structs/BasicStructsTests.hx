@@ -23,8 +23,6 @@ class BasicStructsTests
 		basicStruct = BasicStruct.structs(10);
 		complexStruct = ComplexStruct1.structs(10);
 		complexStruct2 = ComplexStruct2.structs(10);
-		
-		trace("Am I big endian? " + StructsInternal.isBigEndian());
 	}
 	
 	public function test_Initialization():Void 

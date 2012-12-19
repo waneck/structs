@@ -13,7 +13,11 @@ import haxe.io.BytesData;
 class MemoryAccess
 {
 	public static inline function getByte(buffer:BytesData, addr:Int):Byte 
-		return untyped __global__.__hxcpp_memory_get_byte(buffer, addr)
+	{
+		//TODO optimize this
+		var ret:Int = untyped __global__.__hxcpp_memory_get_byte(buffer, addr);
+		return (ret < 0) ? (ret & 0xFF) | 0x80 : ret;
+	}
 	
 	public static inline function getDouble(buffer:BytesData, addr:Int):Double
 		return untyped __global__.__hxcpp_memory_get_double(buffer, addr)
@@ -28,17 +32,17 @@ class MemoryAccess
 		return untyped __global__.__hxcpp_memory_get_ui16(buffer, addr)
 	
 	public static inline function setByte(buffer:BytesData, addr:Int, val:Byte):Void
-		return untyped __global__.__hxcpp_memory_set_byte(buffer, addr, val)
+		untyped __global__.__hxcpp_memory_set_byte(buffer, addr, val & 0xff)
 	
 	public static inline function setDouble(buffer:BytesData, addr:Int, val:Double):Void
-		return untyped __global__.__hxcpp_memory_set_double(buffer, addr, val)
+		untyped __global__.__hxcpp_memory_set_double(buffer, addr, val)
 	
 	public static inline function setSingle(buffer:BytesData, addr:Int, val:Single):Void
-		return untyped __global__.__hxcpp_memory_set_float(buffer, addr, val)
+		untyped __global__.__hxcpp_memory_set_float(buffer, addr, val)
 	
 	public static inline function setInt(buffer:BytesData, addr:Int, val:Int):Void
-		return untyped __global__.__hxcpp_memory_set_i32(buffer, addr, val)
+		untyped __global__.__hxcpp_memory_set_i32(buffer, addr, val)
 	
 	public static inline function setShort(buffer:BytesData, addr:Int, val:Short):Void
-		return untyped __global__.__hxcpp_memory_set_i16(buffer, addr, val)
+		untyped __global__.__hxcpp_memory_set_i16(buffer, addr, val & 0xFFFF)
 }

@@ -5,8 +5,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.structs.internal.StructExtensions;
-import macrotools.MacroTools;
-import macrotools.TypeTools;
+import haxe.macro.MacroTools;
 using Lambda;
 #end
 

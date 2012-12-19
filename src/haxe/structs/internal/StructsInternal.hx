@@ -98,7 +98,7 @@ class StructsInternal
 	}
 	
 #if (cpp || js)
-	private static var bigEndian:Bool = _isBigEndian();
+	private static var bigEndian:Null<Bool> = _isBigEndian();
 
 	private static function _isBigEndian():Bool
 	{
